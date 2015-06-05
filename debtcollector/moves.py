@@ -14,9 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import functools
+import inspect
 
-from oslo_utils import reflection
 import six
 
 from debtcollector import _utils
@@ -28,24 +27,17 @@ _MOVED_METHOD_POSTFIX = "()"
 
 def _moved_decorator(kind, new_attribute_name, message=None,
                      version=None, removal_version=None, stacklevel=3,
-                     attr_postfix=None):
+                     attr_postfix=None, category=None):
     """Decorates a method/property that was moved to another location."""
 
     def decorator(f):
-        try:
-            # Prefer the py3.x name (if we can get at it...)
-            old_attribute_name = f.__qualname__
-            fully_qualified = True
-        except AttributeError:
-            old_attribute_name = f.__name__
-            fully_qualified = False
-
+        fully_qualified, old_attribute_name = _utils.get_qualified_name(f)
         if attr_postfix:
             old_attribute_name += attr_postfix
 
         @six.wraps(f)
         def wrapper(self, *args, **kwargs):
-            base_name = reflection.get_class_name(self, fully_qualified=False)
+            base_name = _utils.get_class_name(self, fully_qualified=False)
             if fully_qualified:
                 old_name = old_attribute_name
             else:
@@ -55,7 +47,8 @@ def _moved_decorator(kind, new_attribute_name, message=None,
             out_message = _utils.generate_message(
                 prefix, message=message,
                 version=version, removal_version=removal_version)
-            _utils.deprecation(out_message, stacklevel=stacklevel)
+            _utils.deprecation(out_message, stacklevel=stacklevel,
+                               category=category)
             return f(self, *args, **kwargs)
 
         return wrapper
@@ -64,27 +57,30 @@ def _moved_decorator(kind, new_attribute_name, message=None,
 
 
 def moved_method(new_method_name, message=None,
-                 version=None, removal_version=None, stacklevel=3):
+                 version=None, removal_version=None, stacklevel=3,
+                 category=None):
     """Decorates a *instance* method that was moved to another location."""
     if not new_method_name.endswith(_MOVED_METHOD_POSTFIX):
         new_method_name += _MOVED_METHOD_POSTFIX
     return _moved_decorator('Method', new_method_name, message=message,
                             version=version, removal_version=removal_version,
                             stacklevel=stacklevel,
-                            attr_postfix=_MOVED_METHOD_POSTFIX)
+                            attr_postfix=_MOVED_METHOD_POSTFIX,
+                            category=category)
 
 
 def moved_property(new_attribute_name, message=None,
-                   version=None, removal_version=None, stacklevel=3):
+                   version=None, removal_version=None, stacklevel=3,
+                   category=None):
     """Decorates a *instance* property that was moved to another location."""
     return _moved_decorator('Property', new_attribute_name, message=message,
                             version=version, removal_version=removal_version,
-                            stacklevel=stacklevel)
+                            stacklevel=stacklevel, category=category)
 
 
 def moved_class(new_class, old_class_name, old_module_name,
                 message=None, version=None, removal_version=None,
-                stacklevel=3):
+                stacklevel=3, category=None):
     """Deprecates a class that was moved to another location.
 
     This creates a 'new-old' type that can be used for a
@@ -93,8 +89,13 @@ def moved_class(new_class, old_class_name, old_module_name,
     improved location for the old class now is.
     """
 
+    if not inspect.isclass(new_class):
+        _qual, type_name = _utils.get_qualified_name(type(new_class))
+        raise TypeError("Unexpected class type '%s' (expected"
+                        " class type only)" % type_name)
+
     old_name = ".".join((old_module_name, old_class_name))
-    new_name = reflection.get_class_name(new_class)
+    new_name = _utils.get_class_name(new_class)
     prefix = _CLASS_MOVED_PREFIX_TPL % (old_name, new_name)
     out_message = _utils.generate_message(
         prefix, message=message, version=version,
@@ -102,13 +103,10 @@ def moved_class(new_class, old_class_name, old_module_name,
 
     def decorator(f):
 
-        # Use the older functools until the following is available:
-        #
-        # https://bitbucket.org/gutworth/six/issue/105
-
-        @functools.wraps(f, assigned=("__name__", "__doc__"))
+        @six.wraps(f, assigned=("__name__", "__doc__"))
         def wrapper(self, *args, **kwargs):
-            _utils.deprecation(out_message, stacklevel=stacklevel)
+            _utils.deprecation(out_message, stacklevel=stacklevel,
+                               category=category)
             return f(self, *args, **kwargs)
 
         return wrapper

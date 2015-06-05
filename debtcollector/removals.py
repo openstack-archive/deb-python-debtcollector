@@ -15,27 +15,18 @@
 import functools
 import inspect
 
-from oslo_utils import reflection
 import six
 import wrapt
 
 from debtcollector import _utils
 
 
-def _get_qualified_name(obj):
-    # Prefer the py3.x name (if we can get at it...)
-    try:
-        return (True, obj.__qualname__)
-    except AttributeError:
-        return (False, obj.__name__)
-
-
 def _get_module_name(mod):
-    return _get_qualified_name(mod)[1]
+    return _utils.get_qualified_name(mod)[1]
 
 
 def remove(f=None, message=None, version=None, removal_version=None,
-           stacklevel=3):
+           stacklevel=3, category=None):
     """Decorates a function, method, or class to emit a deprecation warning
 
     :param str message: A message to include in the deprecation warning
@@ -45,16 +36,19 @@ def remove(f=None, message=None, version=None, removal_version=None,
                                 version
     :param int stacklevel: How many entries deep in the call stack before
                            ignoring
+    :param type category: warnings message category (this defaults to
+                          ``DeprecationWarning`` when none is provided)
     """
     if f is None:
         return functools.partial(remove, message=message,
                                  version=version,
                                  removal_version=removal_version,
-                                 stacklevel=stacklevel)
+                                 stacklevel=stacklevel,
+                                 category=category)
 
     @wrapt.decorator
     def wrapper(f, instance, args, kwargs):
-        qualified, f_name = _get_qualified_name(f)
+        qualified, f_name = _utils.get_qualified_name(f)
         if qualified:
             if inspect.isclass(f):
                 prefix_pre = "Using class"
@@ -72,22 +66,22 @@ def remove(f=None, message=None, version=None, removal_version=None,
                     thing_post = ''
                     module_name = _get_module_name(inspect.getmodule(f))
                     if module_name == '__main__':
-                        f_name = reflection.get_class_name(
+                        f_name = _utils.get_class_name(
                             f, fully_qualified=False)
                     else:
-                        f_name = reflection.get_class_name(
+                        f_name = _utils.get_class_name(
                             f, fully_qualified=True)
                 # Decorator was a used on a function
                 else:
                     thing_post = '()'
                     module_name = _get_module_name(inspect.getmodule(f))
                     if module_name != '__main__':
-                        f_name = reflection.get_callable_name(f)
+                        f_name = _utils.get_callable_name(f)
             # Decorator was used on a classmethod or instancemethod
             else:
                 thing_post = '()'
-                base_name = reflection.get_class_name(instance,
-                                                      fully_qualified=False)
+                base_name = _utils.get_class_name(instance,
+                                                  fully_qualified=False)
             if base_name:
                 thing_name = ".".join([base_name, f_name])
             else:
@@ -102,13 +96,15 @@ def remove(f=None, message=None, version=None, removal_version=None,
             version=version,
             removal_version=removal_version,
             message=message)
-        _utils.deprecation(out_message, stacklevel)
+        _utils.deprecation(out_message,
+                           stacklevel=stacklevel, category=category)
         return f(*args, **kwargs)
     return wrapper(f)
 
 
 def removed_kwarg(old_name, message=None,
-                  version=None, removal_version=None, stacklevel=3):
+                  version=None, removal_version=None, stacklevel=3,
+                  category=None):
     """Decorates a kwarg accepting function to deprecate a removed kwarg."""
 
     prefix = "Using the '%s' argument is deprecated" % old_name
@@ -121,7 +117,8 @@ def removed_kwarg(old_name, message=None,
         @six.wraps(f)
         def wrapper(*args, **kwargs):
             if old_name in kwargs:
-                _utils.deprecation(out_message, stacklevel=stacklevel)
+                _utils.deprecation(out_message,
+                                   stacklevel=stacklevel, category=category)
             return f(*args, **kwargs)
 
         return wrapper
@@ -130,7 +127,8 @@ def removed_kwarg(old_name, message=None,
 
 
 def removed_module(module, replacement=None, message=None,
-                   version=None, removal_version=None, stacklevel=3):
+                   version=None, removal_version=None, stacklevel=3,
+                   category=None):
     """Helper to be called inside a module to emit a deprecation warning
 
     :param str replacment: A location (or information about) of any potential
@@ -142,13 +140,15 @@ def removed_module(module, replacement=None, message=None,
                                 version
     :param int stacklevel: How many entries deep in the call stack before
                            ignoring
+    :param type category: warnings message category (this defaults to
+                          ``DeprecationWarning`` when none is provided)
     """
     if inspect.ismodule(module):
         module_name = _get_module_name(module)
     elif isinstance(module, six.string_types):
         module_name = module
     else:
-        _qual, type_name = _get_qualified_name(type(module))
+        _qual, type_name = _utils.get_qualified_name(type(module))
         raise TypeError("Unexpected module type '%s' (expected string or"
                         " module type only)" % type_name)
     prefix = "The '%s' module usage is deprecated" % module_name
@@ -160,4 +160,5 @@ def removed_module(module, replacement=None, message=None,
                                           postfix=postfix, message=message,
                                           version=version,
                                           removal_version=removal_version)
-    _utils.deprecation(out_message, stacklevel)
+    _utils.deprecation(out_message,
+                       stacklevel=stacklevel, category=category)
