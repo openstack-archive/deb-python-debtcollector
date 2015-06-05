@@ -1,3 +1,12 @@
+python-debtcollector (0.5.0-1) UNRELEASED; urgency=medium
+
+  * Team upload.
+  * New upstream release:
+    - d/control: Align version requirements with upstream.
+    - d/control: Drop dependency on oslo.utils.
+
+ -- James Page <james.page@ubuntu.com>  Fri, 05 Jun 2015 10:11:29 +0100
+
 python-debtcollector (0.3.0-1) unstable; urgency=medium
 
   * New upstream release.

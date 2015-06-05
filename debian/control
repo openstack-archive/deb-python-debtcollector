@@ -14,15 +14,13 @@ Build-Depends: debhelper (>= 9),
 Build-Depends-Indep: python-babel,
                      python-coverage,
                      python-hacking,
-                     python-oslo.utils (>= 1.2.0),
-                     python-oslosphinx (>= 2.2.0.0),
-                     python-oslotest (>= 1.2.0),
+                     python-oslosphinx (>= 2.5.0),
+                     python-oslotest (>= 1.5.1),
                      python-six (>= 1.9.0),
                      python-testscenarios,
                      python-testtools,
                      python-wrapt,
                      python3-babel,
-                     python3-oslo.utils (>= 1.2.0),
                      python3-oslotest (>= 1.2.0),
                      python3-pbr,
                      python3-six (>= 1.9.0),
@@ -39,7 +37,6 @@ Homepage: http://www.openstack.org/
 Package: python-debtcollector
 Architecture: all
 Depends: python-babel,
-         python-oslo.utils (>= 1.2.0),
          python-pbr,
          python-six (>= 1.9.0),
          python-wrapt,
@@ -56,7 +53,6 @@ Description: collection of patterns to collect technical debt - Python 2.x
 Package: python3-debtcollector
 Architecture: all
 Depends: python3-babel,
-         python3-oslo.utils (>= 1.2.0),
          python3-pbr,
          python3-six (>= 1.9.0),
          python3-wrapt,
