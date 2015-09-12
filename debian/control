@@ -2,27 +2,28 @@ Source: python-debtcollector
 Section: python
 Priority: optional
 Maintainer: PKG OpenStack <openstack-devel@lists.alioth.debian.org>
-Uploaders: Thomas Goirand <zigo@debian.org>
+Uploaders: Thomas Goirand <zigo@debian.org>,
 Build-Depends: debhelper (>= 9),
                dh-python,
                openstack-pkg-tools,
                python-all,
+               python-pbr (>= 1.6),
                python-setuptools,
                python-sphinx,
                python3-all,
-               python3-setuptools
+               python3-pbr (>= 1.6),
+               python3-setuptools,
 Build-Depends-Indep: python-babel,
                      python-coverage,
                      python-hacking,
                      python-oslosphinx (>= 2.5.0),
-                     python-oslotest (>= 1.5.1),
+                     python-oslotest (>= 1.10.0),
                      python-six (>= 1.9.0),
                      python-testscenarios,
                      python-testtools,
                      python-wrapt,
                      python3-babel,
-                     python3-oslotest (>= 1.2.0),
-                     python3-pbr,
+                     python3-oslotest (>= 1.10.0),
                      python3-six (>= 1.9.0),
                      python3-testscenarios,
                      python3-testtools,
@@ -37,12 +38,12 @@ Homepage: http://www.openstack.org/
 Package: python-debtcollector
 Architecture: all
 Depends: python-babel,
-         python-pbr,
+         python-pbr (>= 1.6),
          python-six (>= 1.9.0),
          python-wrapt,
          ${misc:Depends},
-         ${python:Depends}
-Suggests: python-debtcollector-doc
+         ${python:Depends},
+Suggests: python-debtcollector-doc,
 Description: collection of patterns to collect technical debt - Python 2.x
  Debtcollector is a collection of Python patterns to help collecting technical
  debt in a non-destructive manner (following deprecation patterns and
@@ -53,12 +54,12 @@ Description: collection of patterns to collect technical debt - Python 2.x
 Package: python3-debtcollector
 Architecture: all
 Depends: python3-babel,
-         python3-pbr,
+         python3-pbr (>= 1.6),
          python3-six (>= 1.9.0),
          python3-wrapt,
          ${misc:Depends},
-         ${python3:Depends}
-Suggests: python-debtcollector-doc
+         ${python3:Depends},
+Suggests: python-debtcollector-doc,
 Description: collection of patterns to collect technical debt - Python 3.x
  Debtcollector is a collection of Python patterns to help collecting technical
  debt in a non-destructive manner (following deprecation patterns and
@@ -69,7 +70,8 @@ Description: collection of patterns to collect technical debt - Python 3.x
 Package: python-debtcollector-doc
 Section: doc
 Architecture: all
-Depends: ${misc:Depends}, ${sphinxdoc:Depends}
+Depends: ${misc:Depends},
+         ${sphinxdoc:Depends},
 Description: collection of patterns to collect technical debt - doc
  Debtcollector is a collection of Python patterns to help collecting technical
  debt in a non-destructive manner (following deprecation patterns and
