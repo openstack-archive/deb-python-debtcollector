@@ -2,8 +2,8 @@
 Examples
 ========
 
-Removing a class/method/function
---------------------------------
+Removing a class/classmethod/method/function
+--------------------------------------------
 
 To signal to a user that a method (staticmethod, classmethod, or regular
 instance method) or a class or function is going to be removed at some point
@@ -24,7 +24,12 @@ A basic example to do just this (on a method/function):
     ...
     >>> c = Car()
     >>> c.start()
-    __main__:1: DeprecationWarning: Using function/method Car.start is deprecated
+
+**Expected output:**
+
+.. testoutput::
+
+    __main__:1: DeprecationWarning: Using function/method 'Car.start()' is deprecated
 
 A basic example to do just this (on a class):
 
@@ -38,7 +43,75 @@ A basic example to do just this (on a class):
     ...   pass
     ...
     >>> p = Pinto()
-    __main__:1: DeprecationWarning: Using class Pinto is deprecated
+
+**Expected output:**
+
+.. testoutput::
+
+    __main__:1: DeprecationWarning: Using class 'Pinto' is deprecated
+
+A basic example to do just this (on a classmethod):
+
+.. doctest::
+
+    >>> from debtcollector import removals
+    >>> import warnings
+    >>> warnings.simplefilter("once")
+    >>> class OldAndBusted(object):
+    ...     @removals.remove
+    ...     @classmethod
+    ...     def fix_things(cls):
+    ...         pass
+    ...
+    >>> OldAndBusted.fix_things()
+
+**Expected output:**
+
+.. testoutput::
+
+    __main__:1: DeprecationWarning: Using function/method 'OldAndBusted.fix_things()' is deprecated
+
+Removing a keyword argument
+---------------------------
+
+A basic example to do just this (on a classmethod):
+
+.. doctest::
+
+    >>> import warnings
+    >>> warnings.simplefilter("once")
+    >>> from debtcollector import removals
+    >>> class OldAndBusted(object):
+    ...     @removals.removed_kwarg('resp', message="Please use 'response' instead")
+    ...     @classmethod
+    ...     def factory(cls, resp=None, response=None):
+    ...         response = resp or response
+    ...         return response
+    ...
+    >>> OldAndBusted.factory(resp='super-duper')
+    'super-duper'
+
+.. testoutput::
+
+    __main__:1: DeprecationWarning: Using the 'resp' argument is deprecated: Please use 'response' instead
+
+A basic example to do just this (on a ``__init__`` method):
+
+.. doctest::
+
+    >>> import warnings
+    >>> warnings.simplefilter("once")
+    >>> from debtcollector import removals
+    >>> class OldAndBusted(object):
+    ...     @removals.removed_kwarg('bleep')
+    ...     def __init__(self, bleep=None):
+    ...         self.bloop = bleep
+    ...
+    >>> o = OldAndBusted(bleep=2)
+
+.. testoutput::
+
+    __main__:1: DeprecationWarning: Using the 'bleep' argument is deprecated
 
 Moving a method
 ---------------
@@ -63,10 +136,15 @@ A basic example to do just this:
     ...
     >>> c = Cat()
     >>> c.mewow()
-    __main__:1: DeprecationWarning: Method 'Cat.mewow()' has moved to 'Cat.meow()'
     'kitty'
     >>> c.meow()
     'kitty'
+
+**Expected output:**
+
+.. testoutput::
+
+    __main__:1: DeprecationWarning: Method 'Cat.mewow()' has moved to 'Cat.meow()'
 
 Moving a property
 -----------------
@@ -93,10 +171,15 @@ A basic example to do just this:
     ...
     >>> d = Dog()
     >>> d.burk
-    __main__:1: DeprecationWarning: Property 'Dog.burk' has moved to 'Dog.bark'
     'woof'
     >>> d.bark
     'woof'
+
+**Expected output:**
+
+.. testoutput::
+
+    __main__:1: DeprecationWarning: Property 'Dog.burk' has moved to 'Dog.bark'
 
 Moving a class
 --------------
@@ -117,8 +200,13 @@ A basic example to do just this:
     ...
     >>> OldWizBang = moves.moved_class(WizBang, 'OldWizBang', __name__)
     >>> a = OldWizBang()
-    __main__:1: DeprecationWarning: Class '__main__.OldWizBang' has moved to '__main__.WizBang'
     >>> b = WizBang()
+
+**Expected output:**
+
+.. testoutput::
+
+    __main__:1: DeprecationWarning: Class '__main__.OldWizBang' has moved to '__main__.WizBang'
 
 Renaming a keyword argument
 ---------------------------
@@ -137,19 +225,20 @@ A basic example to do just this:
     >>> warnings.simplefilter('always')
     >>> @renames.renamed_kwarg('snizzle', 'nizzle')
     ... def do_the_deed(snizzle=True, nizzle=True):
-    ...   print(snizzle)
-    ...   print(nizzle)
+    ...   return (snizzle, nizzle)
     ...
     >>> do_the_deed()
-    True
-    True
+    (True, True)
     >>> do_the_deed(snizzle=False)
-    __main__:1: DeprecationWarning: Using the 'snizzle' argument is deprecated, please use the 'nizzle' argument instead
-    False
-    True
+    (False, True)
     >>> do_the_deed(nizzle=False)
-    True
-    False
+    (True, False)
+
+**Expected output:**
+
+.. testoutput::
+
+    __main__:1: DeprecationWarning: Using the 'snizzle' argument is deprecated, please use the 'nizzle' argument instead
 
 Further customizing the emitted messages
 ----------------------------------------
@@ -173,6 +262,11 @@ A basic example to do just this:
     ...   pass
     ...
     >>> do_the_deed(snizzle=False)
+
+**Expected output:**
+
+.. testoutput::
+
     __main__:1: DeprecationWarning: Using the 'snizzle' argument is deprecated in version '0.5' and will be removed in version '0.7', please use the 'nizzle' argument instead
 
 If the ``removal_version`` is unknown the special character ``?`` can be used
@@ -191,6 +285,11 @@ A basic example to do just this:
     ...   pass
     ...
     >>> do_the_deed(snizzle=False)
+
+**Expected output:**
+
+.. testoutput::
+
     __main__:1: DeprecationWarning: Using the 'snizzle' argument is deprecated in version '0.5' and will be removed in a future version, please use the 'nizzle' argument instead
 
 To further customize the message (with a special postfix) the ``message``
@@ -208,4 +307,30 @@ A basic example to do just this:
     ...   pass
     ...
     >>> do_the_deed(snizzle=False)
+
+**Expected output:**
+
+.. testoutput::
+
     __main__:1: DeprecationWarning: Using the 'snizzle' argument is deprecated, please use the 'nizzle' argument instead: Pretty please stop using it
+
+Deprecating anything else
+-------------------------
+
+For use-cases which do not fit the above decorators, properties other
+provided functionality the final option is to use debtcollectors
+the :py:func:`~debtcollector.deprecate` function to make your own
+messages (using the message building logic that debtcollector uses itself).
+
+A basic example to do just this:
+
+.. doctest::
+
+    >>> import warnings
+    >>> warnings.simplefilter("always")
+    >>> import debtcollector
+    >>> debtcollector.deprecate("This is no longer supported", version="1.0")
+
+.. testoutput::
+
+    __main__:1: DeprecationWarning: This is no longer supported in version '1.0'

@@ -14,6 +14,7 @@
 
 import warnings
 
+import debtcollector
 from debtcollector import moves
 from debtcollector import removals
 from debtcollector import renames
@@ -44,6 +45,11 @@ class WoofWoof(object):
     @moves.moved_property('bark', category=PendingDeprecationWarning)
     def berk(self):
         return self.bark
+
+    @removals.removed_kwarg('resp', message="Please use 'response' instead")
+    @classmethod
+    def factory(cls, resp=None, response=None):
+        return 'super-duper'
 
 
 class KittyKat(object):
@@ -129,6 +135,15 @@ OldHotness = moves.moved_class(NewHotness, 'OldHotness', __name__)
 
 OldHotness2 = moves.moved_class(NewHotness, 'OldHotness', __name__,
                                 category=PendingDeprecationWarning)
+
+
+class DeprecateAnythingTest(test_base.TestCase):
+    def test_generation(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            debtcollector.deprecate("Its broken")
+            debtcollector.deprecate("Its really broken")
+        self.assertEqual(2, len(capture))
 
 
 class MovedInheritableClassTest(test_base.TestCase):
@@ -248,6 +263,18 @@ class RenamedKwargTest(test_base.TestCase):
         self.assertEqual(1, len(capture))
         w = capture[0]
         self.assertEqual(DeprecationWarning, w.category)
+
+    def test_warnings_emitted_classmethod(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            WoofWoof.factory(resp="hi")
+        self.assertEqual(1, len(capture))
+        w = capture[0]
+        self.assertEqual(DeprecationWarning, w.category)
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            WoofWoof.factory(response="hi")
+        self.assertEqual(0, len(capture))
 
     def test_warnings_emitted_pending(self):
         with warnings.catch_warnings(record=True) as capture:
