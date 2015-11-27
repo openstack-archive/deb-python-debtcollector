@@ -44,8 +44,10 @@ override_dh_clean:
 	rm -rf build
 
 override_dh_sphinxdoc:
+ifeq (,$(findstring nodocs, $(DEB_BUILD_OPTIONS)))
 	sphinx-build -b html doc/source debian/python-debtcollector-doc/usr/share/doc/python-debtcollector-doc/html
 	dh_sphinxdoc -O--buildsystem=python_distutils
+endif
 
 # Commands not to run
 override_dh_installcatalogs:
