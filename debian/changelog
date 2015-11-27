@@ -5,11 +5,17 @@ python-debtcollector (1.0.0-1) experimental; urgency=medium
   * Added support for DEB_BUILD_OPTIONS=nodocs.
 
  -- Thomas Goirand <zigo@debian.org>  Fri, 27 Nov 2015 12:09:11 +0100
+python-debtcollector (0.8.0-2) unstable; urgency=medium
+
+  * Uploading to unstable.
+
+ -- Thomas Goirand <zigo@debian.org>  Fri, 16 Oct 2015 09:28:56 +0000
 
 python-debtcollector (0.8.0-1) experimental; urgency=medium
 
   * New upstream release (Closes: #797927).
   * Fixed (build-)depends for this release.
+  * Fixed watch file.
 
  -- Thomas Goirand <zigo@debian.org>  Sat, 12 Sep 2015 09:48:44 +0200
 
