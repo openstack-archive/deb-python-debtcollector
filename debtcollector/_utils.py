@@ -30,6 +30,7 @@ except AttributeError:
 # and see https://docs.python.org/2/reference/executionmodel.html (and likely
 # others)...
 _BUILTIN_MODULES = ('builtins', '__builtin__', '__builtins__', 'exceptions')
+_enabled = True
 
 
 def deprecation(message, stacklevel=None, category=None):
@@ -49,6 +50,8 @@ def deprecation(message, stacklevel=None, category=None):
     avoid doing by always giving at *least* N + 1 release for users to address
     the deprecation warnings).
     """
+    if not _enabled:
+        return
     if category is None:
         category = DeprecationWarning
     if stacklevel is None:
@@ -164,4 +167,10 @@ def get_callable_name(function):
             parts = (im_class.__module__, im_class.__qualname__)
         except AttributeError:
             parts = (im_class.__module__, im_class.__name__)
-    return '.'.join(parts)
+    # When running under sphinx it appears this can be none? if so just
+    # don't include it...
+    mod, rest = (parts[0], parts[1:])
+    if not mod:
+        return '.'.join(rest)
+    else:
+        return '.'.join(parts)

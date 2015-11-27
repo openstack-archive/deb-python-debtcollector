@@ -15,6 +15,7 @@
 import warnings
 
 import debtcollector
+from debtcollector.fixtures import disable
 from debtcollector import moves
 from debtcollector import removals
 from debtcollector import renames
@@ -91,6 +92,14 @@ def blue_comet():
     return True
 
 
+def yellow_sun():
+    """Yellow."""
+    return True
+
+
+yellowish_sun = moves.moved_function(yellow_sun, 'yellowish_sun', __name__)
+
+
 @removals.remove()
 class EFSF(object):
     pass
@@ -105,6 +114,22 @@ class ThingB(object):
     @removals.remove()
     def black_tristars(self):
         pass
+
+    @removals.removed_property
+    def green_tristars(self):
+        return 'green'
+
+    @green_tristars.setter
+    def green_tristars(self, value):
+        pass
+
+    @green_tristars.deleter
+    def green_tristars(self):
+        pass
+
+    @removals.removed_property(message="stop using me")
+    def green_blue_tristars(self):
+        return 'green-blue'
 
     @removals.remove(category=PendingDeprecationWarning)
     def blue_tristars(self):
@@ -215,6 +240,34 @@ class MovedPropertyTest(test_base.TestCase):
             warnings.simplefilter("always")
             self.assertEqual('woof', dog.bark)
         self.assertEqual(0, len(capture))
+
+
+class DisabledTest(test_base.TestCase):
+    def test_basics(self):
+        dog = WoofWoof()
+        c = KittyKat()
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            with disable.DisableFixture():
+                self.assertTrue(yellowish_sun())
+                self.assertEqual('woof', dog.berk)
+                self.assertEqual('supermeow', c.meow())
+        self.assertEqual(0, len(capture))
+
+
+class MovedFunctionTest(test_base.TestCase):
+    def test_basics(self):
+        self.assertTrue(yellowish_sun())
+        self.assertTrue(yellow_sun())
+        self.assertEqual("Yellow.", yellowish_sun.__doc__)
+
+    def test_warnings_emitted(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            self.assertTrue(yellowish_sun())
+        self.assertEqual(1, len(capture))
+        w = capture[0]
+        self.assertEqual(DeprecationWarning, w.category)
 
 
 class MovedMethodTest(test_base.TestCase):
@@ -333,6 +386,27 @@ class RemovalTests(test_base.TestCase):
             warnings.simplefilter("always")
             self.assertEqual(2, f())
         self.assertEqual(0, len(capture))
+
+    def test_warnings_emitted_property(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            o = ThingB()
+            self.assertEqual('green', o.green_tristars)
+            o.green_tristars = 'b'
+            del o.green_tristars
+        self.assertEqual(3, len(capture))
+        w = capture[0]
+        self.assertEqual(DeprecationWarning, w.category)
+
+    def test_warnings_emitted_property_custom_message(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            o = ThingB()
+            self.assertEqual('green-blue', o.green_blue_tristars)
+        self.assertEqual(1, len(capture))
+        w = capture[0]
+        self.assertIn('stop using me', str(w.message))
+        self.assertEqual(DeprecationWarning, w.category)
 
     def test_warnings_emitted_function_args(self):
         with warnings.catch_warnings(record=True) as capture:
