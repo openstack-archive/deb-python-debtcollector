@@ -38,7 +38,7 @@ A basic example to do just this (on a class):
     >>> from debtcollector import removals
     >>> import warnings
     >>> warnings.simplefilter('always')
-    >>> @removals.remove
+    >>> @removals.removed_class("Pinto")
     ... class Pinto(object):
     ...   pass
     ...
@@ -48,7 +48,7 @@ A basic example to do just this (on a class):
 
 .. testoutput::
 
-    __main__:1: DeprecationWarning: Using class 'Pinto' is deprecated
+    __main__:1: DeprecationWarning: Using class 'Pinto' (either directly or via inheritance) is deprecated
 
 A basic example to do just this (on a classmethod):
 
@@ -148,6 +148,55 @@ A basic example to do just this (on a ``__init__`` method):
 .. testoutput::
 
     __main__:1: DeprecationWarning: Using the 'bleep' argument is deprecated
+
+Changing the default value of a keyword argument
+------------------------------------------------
+
+A basic example to do just this:
+
+.. doctest::
+
+    >>> import warnings
+    >>> warnings.simplefilter("once")
+    >>> from debtcollector import updating
+    >>> class OldAndBusted(object):
+    ...     ip = '127.0.0.1'
+    ...     @updating.updated_kwarg_default_value('type', 'http', 'https')
+    ...     def url(self, type='http'):
+    ...         response = '%s://%s' % (type, self.ip)
+    ...         return response
+    ...
+    >>> OldAndBusted().url()
+    'http://127.0.0.1'
+
+.. testoutput::
+
+    __main__:1: FutureWarning: The http argument is changing its default value to https, please update the code to explicitly set http as the value
+
+
+A basic classmethod example.
+
+.. note:: the @classmethod decorator is before the debtcollector one
+
+.. doctest::
+
+    >>> import warnings
+    >>> warnings.simplefilter("once")
+    >>> from debtcollector import updating
+    >>> class OldAndBusted(object):
+    ...     ip = '127.0.0.1'
+    ...     @classmethod
+    ...     @updating.updated_kwarg_default_value('type', 'http', 'https')
+    ...     def url(cls, type='http'):
+    ...         response = '%s://%s' % (type, cls.ip)
+    ...         return response
+    ...
+    >>> OldAndBusted.url()
+    'http://127.0.0.1'
+
+.. testoutput::
+
+    __main__:1: FutureWarning: The http argument is changing its default value to https, please update the code to explicitly set http as the value
 
 Moving a function
 -----------------

@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import functools
 import inspect
 import types
 import warnings
@@ -88,6 +89,18 @@ def generate_message(prefix, postfix=None, message=None,
     return ''.join(message_components)
 
 
+def get_assigned(decorator):
+    """Helper to fix/workaround https://bugs.python.org/issue3445"""
+    if six.PY3:
+        return functools.WRAPPER_ASSIGNMENTS
+    else:
+        assigned = []
+        for attr_name in functools.WRAPPER_ASSIGNMENTS:
+            if hasattr(decorator, attr_name):
+                assigned.append(attr_name)
+        return tuple(assigned)
+
+
 def get_class_name(obj, fully_qualified=True):
     """Get class name for object.
 
@@ -103,21 +116,12 @@ def get_class_name(obj, fully_qualified=True):
         pass
     else:
         if built_in:
-            try:
-                return obj.__qualname__
-            except AttributeError:
-                return obj.__name__
-    pieces = []
-    try:
-        pieces.append(obj.__qualname__)
-    except AttributeError:
-        pieces.append(obj.__name__)
-    if fully_qualified:
-        try:
-            pieces.insert(0, obj.__module__)
-        except AttributeError:
-            pass
-    return '.'.join(pieces)
+            return obj.__name__
+
+    if fully_qualified and hasattr(obj, '__module__'):
+        return '%s.%s' % (obj.__module__, obj.__name__)
+    else:
+        return obj.__name__
 
 
 def get_method_self(method):

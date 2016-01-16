@@ -20,6 +20,7 @@ from debtcollector import moves
 from debtcollector import removals
 from debtcollector import renames
 from debtcollector.tests import base as test_base
+from debtcollector import updating
 
 
 @renames.renamed_kwarg('blip', 'blop')
@@ -30,6 +31,16 @@ def blip_blop(blip=1, blop=1):
 @renames.renamed_kwarg('blip', 'blop', category=PendingDeprecationWarning)
 def blip_blop_2(blip=1, blop=1):
     return (blip, blop)
+
+
+@renames.renamed_kwarg('blip', 'blop', replace=True)
+def blip_blop_3(blop=1):
+    return blop
+
+
+@updating.updated_kwarg_default_value('type', 'cat', 'feline')
+def blip_blop_blip(type='cat'):
+    return "The %s meowed quietly" % type
 
 
 class WoofWoof(object):
@@ -65,6 +76,17 @@ class KittyKat(object):
 
     def supermeow(self):
         return 'supermeow'
+
+
+class Giraffe(object):
+    color = 'orange'
+    colour = moves.moved_read_only_property('colour', 'color')
+
+    @property
+    def height(self):
+        return 2
+
+    heightt = moves.moved_read_only_property('heightt', 'height')
 
 
 class NewHotness(object):
@@ -108,6 +130,18 @@ class EFSF(object):
 @removals.remove(category=PendingDeprecationWarning)
 class EFSF_2(object):
     pass
+
+
+@removals.removed_class("StarLord")
+class StarLord(object):
+    def __init__(self):
+        self.name = "star"
+
+
+class StarLordJr(StarLord):
+    def __init__(self, name):
+        super(StarLordJr, self).__init__()
+        self.name = name
 
 
 class ThingB(object):
@@ -216,6 +250,14 @@ class MovedPropertyTest(test_base.TestCase):
         self.assertEqual('woof', dog.burk)
         self.assertEqual('woof', dog.bark)
 
+    def test_readonly_move(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            self.assertEqual('orange', Giraffe.colour)
+            g = Giraffe()
+            self.assertEqual(2, g.heightt)
+        self.assertEqual(2, len(capture))
+
     def test_warnings_emitted(self):
         dog = WoofWoof()
         with warnings.catch_warnings(record=True) as capture:
@@ -308,11 +350,19 @@ class RenamedKwargTest(test_base.TestCase):
         self.assertEqual((2, 1), blip_blop(blip=2))
         self.assertEqual((1, 2), blip_blop(blop=2))
         self.assertEqual((2, 2), blip_blop(blip=2, blop=2))
+        self.assertEqual(2, blip_blop_3(blip=2))
+        self.assertEqual(2, blip_blop_3(blop=2))
 
     def test_warnings_emitted(self):
         with warnings.catch_warnings(record=True) as capture:
             warnings.simplefilter("always")
             self.assertEqual((2, 1), blip_blop(blip=2))
+        self.assertEqual(1, len(capture))
+        w = capture[0]
+        self.assertEqual(DeprecationWarning, w.category)
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            self.assertEqual(2, blip_blop_3(blip=2))
         self.assertEqual(1, len(capture))
         w = capture[0]
         self.assertEqual(DeprecationWarning, w.category)
@@ -341,6 +391,28 @@ class RenamedKwargTest(test_base.TestCase):
         with warnings.catch_warnings(record=True) as capture:
             warnings.simplefilter("always")
             self.assertEqual((1, 2), blip_blop(blop=2))
+        self.assertEqual(0, len(capture))
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            self.assertEqual(2, blip_blop_3(blop=2))
+        self.assertEqual(0, len(capture))
+
+
+class UpdatedArgsTest(test_base.TestCase):
+    def test_basic(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            self.assertEqual('The cat meowed quietly', blip_blop_blip())
+        self.assertEqual(1, len(capture))
+        w = capture[0]
+        self.assertEqual(FutureWarning, w.category)
+
+    def test_kwarg_set(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            self.assertEqual(
+                'The kitten meowed quietly',
+                blip_blop_blip(type='kitten'))
         self.assertEqual(0, len(capture))
 
 
@@ -455,6 +527,24 @@ class RemovalTests(test_base.TestCase):
         self.assertEqual(1, len(capture))
         w = capture[0]
         self.assertEqual(PendingDeprecationWarning, w.category)
+
+    def test_pending_warnings_emitted_class_direct(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            s = StarLord()
+        self.assertEqual(1, len(capture))
+        w = capture[0]
+        self.assertEqual(DeprecationWarning, w.category)
+        self.assertEqual("star", s.name)
+
+    def test_pending_warnings_emitted_class_inherit(self):
+        with warnings.catch_warnings(record=True) as capture:
+            warnings.simplefilter("always")
+            s = StarLordJr("star_jr")
+        self.assertEqual(1, len(capture))
+        w = capture[0]
+        self.assertEqual(DeprecationWarning, w.category)
+        self.assertEqual("star_jr", s.name)
 
     def test_warnings_emitted_instancemethod(self):
         zeon = ThingB()
