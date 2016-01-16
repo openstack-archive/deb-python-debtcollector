@@ -1,6 +1,7 @@
 python-debtcollector (1.2.0-1) experimental; urgency=medium
 
   * New upstream release.
+  * Fixed (build-)depends for this release.
 
  -- Thomas Goirand <zigo@debian.org>  Sat, 16 Jan 2016 03:24:09 +0000
 
