@@ -2,6 +2,7 @@ python-debtcollector (1.3.0-3) UNRELEASED; urgency=medium
 
   * Standards-Version is 3.9.8 now (no change)
   * Fix copyright year in documentation to make build reproducible
+  * Added simple Debian tests
 
  -- Ondřej Nový <novy@ondrej.org>  Sat, 09 Apr 2016 19:26:24 +0200
 

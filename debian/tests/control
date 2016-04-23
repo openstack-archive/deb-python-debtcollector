@@ -1,0 +1,5 @@
+Depends: python-debtcollector
+Test-Command: cd "$ADTTMP" ; python -c "import debtcollector; print debtcollector.__version__"
+
+Depends: python3-debtcollector
+Test-Command: cd "$ADTTMP" ; python3 -c "import debtcollector; print(debtcollector.__version__)"
