@@ -9,6 +9,7 @@ python-debtcollector (1.5.0-1) experimental; urgency=medium
 
   [ Thomas Goirand ]
   * New upstream release.
+  * Fixed (build-)depends for this release.
 
  -- Thomas Goirand <zigo@debian.org>  Wed, 13 Jul 2016 16:51:55 +0200
 
