@@ -1,12 +1,16 @@
-python-debtcollector (1.3.0-3) UNRELEASED; urgency=medium
+python-debtcollector (1.5.0-1) experimental; urgency=medium
 
+  [ Ondřej Nový ]
   * Standards-Version is 3.9.8 now (no change)
   * Fix copyright year in documentation to make build reproducible
   * Added simple Debian tests
   * d/copyright: Added myself to Debian part
   * Changed UPSTREAM_GIT to github.com
 
- -- Ondřej Nový <novy@ondrej.org>  Sat, 09 Apr 2016 19:26:24 +0200
+  [ Thomas Goirand ]
+  * New upstream release.
+
+ -- Thomas Goirand <zigo@debian.org>  Wed, 13 Jul 2016 16:51:55 +0200
 
 python-debtcollector (1.3.0-2) unstable; urgency=medium
 
