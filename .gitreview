@@ -1,4 +1,5 @@
 [gerrit]
 host=review.openstack.org
 port=29418
-project=openstack/debtcollector.git
+project=openstack/deb-python-debtcollector.git
+defaultbranch=debian/newton
