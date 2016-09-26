@@ -32,8 +32,8 @@ Build-Depends-Indep: python-coverage,
                      subunit,
                      testrepository,
 Standards-Version: 3.9.8
-Vcs-Browser: https://anonscm.debian.org/cgit/openstack/python-debtcollector.git/
-Vcs-Git: https://anonscm.debian.org/git/openstack/python-debtcollector.git
+Vcs-Browser: https://git.openstack.org/cgit/openstack/deb-python-debtcollector?h=debian%2Fnewton
+Vcs-Git: https://git.openstack.org/openstack/deb-python-debtcollector -b debian/newton
 Homepage: http://www.openstack.org/
 
 Package: python-debtcollector
